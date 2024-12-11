@@ -43,7 +43,7 @@ const UploadFile = ({
             }`}
             disabled={loading}
           >
-            {loading ? "Uploading..." : "Upload"}
+            {loading ? "Uploading..." : "Upload & Annalyze"}
           </button>
         </div>
       </div>
