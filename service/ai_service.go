@@ -23,8 +23,7 @@ func (s *AIService) AnalyzeData(table map[string][]string, query, token string) 
     if len(table) == 0 || query == "" {
         return "", fmt.Errorf("table or query cannot be empty")
     }
-
-    // url := "https://api-inference.huggingface.co/models/google/tapas-base-finetuned-wtq"
+    
     url := "https://api-inference.huggingface.co/models/google/tapas-large-finetuned-wtq"
     
     // Convert table to array of objects
