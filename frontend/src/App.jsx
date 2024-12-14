@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import axios from "axios";
 import Header from "./components/header";
-import UploadFile from "./components/upload_file";
-import ChatInput from "./components/chat_input";
-import ResponseArea from "./components/response_area";
-import ChooseModel from "./components/choose_model";
+import UploadFile from "./components/uploadFile";
+import ChatInput from "./components/chatInput";
+import ResponseArea from "./components/responseArea";
+import ChooseModel from "./components/chooseModel";
 import Footer from "./components/footer";
 import useFetchSelectedModel from "./hooks/useFetchSelectedModel";
+import RealtimeData from "./components/realtimeData"; // Mengganti RealtimeComponent menjadi RealtimeData
+import axios from "axios";
 
 function App() {
   const [file, setFile] = useState(null);
@@ -16,6 +17,17 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState("google/gemma-2-2b-it");
   const [showModelSelection, setShowModelSelection] = useState(false);
+  const [setData] = useState({
+    Humidity: 0,
+    RandomHumidity: 0,
+    Temperature: 0,
+    RandomTemperature: 0,
+  });
+
+  // Fungsi untuk menerima data dari RealtimeData
+  const handleRealtimeData = (newData) => {
+    setData(newData);
+  };
 
   useFetchSelectedModel(setSelectedModel);
 
@@ -65,7 +77,7 @@ function App() {
     try {
       setLoading(true);
       const res = await axios.post("http://localhost:8080/chat", {
-        query: generalQuery, // Kirim query ke backend
+        query: generalQuery,
       });
       displayResponseWords(res.data.answer);
     } catch (error) {
@@ -79,11 +91,11 @@ function App() {
     try {
       setLoading(true);
       const res = await axios.post("http://localhost:8080/set-model", {
-        model, // Kirim model baru ke backend
+        model,
       });
 
       if (res.data && res.data.status === "success") {
-        setSelectedModel(model); // Update state di frontend
+        setSelectedModel(model);
       }
     } catch (error) {
       console.error("Error updating model:", error);
@@ -99,7 +111,7 @@ function App() {
         showModelSelection={showModelSelection}
         setShowModelSelection={setShowModelSelection}
       />
-      {/* Main Content */}
+
       {showModelSelection ? (
         <ChooseModel
           setSelectedModel={(model) => handleModelChange(model)}
@@ -109,6 +121,12 @@ function App() {
       ) : (
         <>
           <div className="flex-grow overflow-y-auto">
+            <div>
+              <RealtimeData
+                onDataReceived={handleRealtimeData} // Mengirim data ke handleRealtimeData
+              />
+            </div>
+
             {/* File Upload Section */}
             <UploadFile
               handleFileChange={handleFileChange}
