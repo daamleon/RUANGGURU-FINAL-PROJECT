@@ -2,7 +2,7 @@ import React from "react";
 
 const UploadFile = ({
   handleFileChange,
-  handleUpload,
+  handleAnalyze,
   fileQuery,
   setFileQuery,
   loading,
@@ -29,13 +29,13 @@ const UploadFile = ({
             type="text"
             value={fileQuery}
             onChange={(e) => setFileQuery(e.target.value)}
-            placeholder="Enter query related to the file..."
+            placeholder="Enter query related to the data..."
             className="block w-full px-3 py-2 mb-4 bg-[#1e1e1e] text-gray-200 border border-gray-600 rounded focus:outline-none focus:ring focus:ring-blue-500"
           />
 
           {/* Upload Button */}
           <button
-            onClick={handleUpload}
+            onClick={handleAnalyze}
             className={`px-4 py-2 rounded text-white ${
               loading
                 ? "bg-gray-600 cursor-not-allowed"
@@ -43,7 +43,7 @@ const UploadFile = ({
             }`}
             disabled={loading}
           >
-            {loading ? "Uploading..." : "Upload & Annalyze"}
+            {loading ? "Analyzing..." : "Analyze"}
           </button>
         </div>
       </div>

@@ -28,7 +28,7 @@ const ChatInput = ({ handleChat, generalQuery, setGeneralQuery, loading }) => {
           type="text"
           value={generalQuery}
           onChange={(e) => setGeneralQuery(e.target.value)}
-          placeholder="Kirim pesan ke Model"
+          placeholder="Ask for general question"
           className="flex-grow bg-transparent text-white outline-none placeholder-gray-400"
         />
 

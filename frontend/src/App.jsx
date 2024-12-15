@@ -6,7 +6,7 @@ import ResponseArea from "./components/responseArea";
 import ChooseModel from "./components/chooseModel";
 import Footer from "./components/footer";
 import useFetchSelectedModel from "./hooks/useFetchSelectedModel";
-import RealtimeData from "./components/realtimeData"; // Mengganti RealtimeComponent menjadi RealtimeData
+import RealtimeData from "./components/realtimeData";
 import axios from "axios";
 
 function App() {
@@ -45,24 +45,43 @@ function App() {
     });
   };
 
-  const handleUpload = async () => {
-    if (!file || !fileQuery) {
-      alert("Please select a file and enter a query for the file!");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("query", fileQuery);
+  const handleAnalyze = async () => {
+    console.log("File:", file, "Query:", fileQuery); // Debugging
 
     try {
-      setLoading(true);
-      const res = await axios.post("http://localhost:8080/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      displayResponseWords(res.data.answer);
+      if (file) {
+        if (!fileQuery) {
+          alert("Please enter a query for the file!");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("query", fileQuery);
+
+        setLoading(true);
+        const res = await axios.post("http://localhost:8080/upload", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        displayResponseWords(res.data.answer);
+      } else if (fileQuery) {
+        const firebaseData = { path: "/DHT22", query: fileQuery };
+
+        setLoading(true);
+        const res = await axios.post(
+          "http://localhost:8080/analyze-firebase",
+          firebaseData,
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        displayResponseWords(res.data.answer);
+      } else {
+        alert("Please upload a file or enter a query for Firebase!");
+      }
     } catch (error) {
-      console.error("Error uploading file:", error);
+      console.error("Error processing request:", error);
+      alert("Failed to analyze data. Check the console for details.");
     } finally {
       setLoading(false);
     }
@@ -130,7 +149,7 @@ function App() {
             {/* File Upload Section */}
             <UploadFile
               handleFileChange={handleFileChange}
-              handleUpload={handleUpload}
+              handleAnalyze={handleAnalyze} // Perbaikan prop
               fileQuery={fileQuery}
               setFileQuery={setFileQuery}
               loading={loading}

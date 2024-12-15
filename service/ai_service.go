@@ -20,79 +20,97 @@ type AIService struct {
 
 // AnalyzeData communicates with the Tapas model to analyze the data table
 func (s *AIService) AnalyzeData(table map[string][]string, query, token string) (string, error) {
-    if len(table) == 0 || query == "" {
-        return "", fmt.Errorf("table or query cannot be empty")
-    }
-    
-    url := "https://api-inference.huggingface.co/models/google/tapas-large-finetuned-wtq"
-    
-    // Convert table to array of objects
-    var tableArray []map[string]string
-    headers := make([]string, 0, len(table))
-    for header := range table {
-        headers = append(headers, header)
-    }
+	log.Println("Starting AnalyzeData")
+	log.Printf("Received table: %+v", table)
+	log.Printf("Received query: %s", query)
 
-    rowCount := len(table[headers[0]])
-    for i := 0; i < rowCount; i++ {
-        row := make(map[string]string)
-        for _, header := range headers {
-            row[header] = table[header][i]
-        }
-        tableArray = append(tableArray, row)
-    }
+	if len(table) == 0 || query == "" {
+		log.Println("Validation failed: table or query cannot be empty")
+		return "", fmt.Errorf("table or query cannot be empty")
+	}
 
-    // Prepare payload
-    payload := map[string]interface{}{
-        "inputs": map[string]interface{}{
-            "query": query,
-            "table": tableArray,
-        },
-    }
+	url := "https://api-inference.huggingface.co/models/google/tapas-large-finetuned-wtq"
 
-    payloadBytes, err := json.Marshal(payload)
-    if err != nil {
-        return "", fmt.Errorf("failed to marshal payload: %w", err)
-    }
+	// Convert table to array of objects
+	var tableArray []map[string]string
+	headers := make([]string, 0, len(table))
+	for header := range table {
+		headers = append(headers, header)
+	}
 
-    // Debug log for payload
-    log.Printf("Payload sent to Hugging Face: %s", string(payloadBytes))
+	rowCount := len(table[headers[0]])
+	for i := 0; i < rowCount; i++ {
+		row := make(map[string]string)
+		for _, header := range headers {
+			row[header] = table[header][i]
+		}
+		tableArray = append(tableArray, row)
+	}
 
-    req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
-    if err != nil {
-        return "", fmt.Errorf("failed to create request: %w", err)
-    }
-    req.Header.Set("Authorization", "Bearer "+token)
-    req.Header.Set("Content-Type", "application/json")
+	log.Printf("Converted table to array format: %+v", tableArray)
 
-    resp, err := s.Client.Do(req)
-    if err != nil {
-        return "", fmt.Errorf("failed to send request: %w", err)
-    }
-    defer resp.Body.Close()
+	// Prepare payload
+	payload := map[string]interface{}{
+		"inputs": map[string]interface{}{
+			"query": query,
+			"table": tableArray,
+		},
+	}
 
-    if resp.StatusCode != http.StatusOK {
-        body, _ := ioutil.ReadAll(resp.Body)
-        log.Printf("Error response from Hugging Face: %s", string(body))
-        return "", fmt.Errorf("received non-200 status code: %d", resp.StatusCode)
-    }
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("Failed to marshal payload: %v", err)
+		return "", fmt.Errorf("failed to marshal payload: %w", err)
+	}
 
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {
-        return "", fmt.Errorf("failed to read response body: %w", err)
-    }
+	log.Printf("Payload sent to Hugging Face: %s", string(payloadBytes))
 
-    var result model.TapasResponse
-    if err := json.Unmarshal(body, &result); err != nil {
-        return "", fmt.Errorf("failed to unmarshal response: %w", err)
-    }
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		log.Printf("Failed to create HTTP request: %v", err)
+		return "", fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
 
-    if len(result.Cells) > 0 {
-        return result.Cells[0], nil
-    }
+	resp, err := s.Client.Do(req)
+	if err != nil {
+		log.Printf("Failed to send request to Hugging Face: %v", err)
+		return "", fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
 
-    return "", fmt.Errorf("no valid response from model")
+	log.Printf("Received response with status: %d", resp.StatusCode)
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(resp.Body)
+		log.Printf("Error response from Hugging Face: %s", string(body))
+		return "", fmt.Errorf("received non-200 status code: %d", resp.StatusCode)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("Failed to read response body: %v", err)
+		return "", fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	log.Printf("Response body: %s", string(body))
+
+	var result model.TapasResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		log.Printf("Failed to unmarshal response: %v", err)
+		return "", fmt.Errorf("failed to unmarshal response: %w", err)
+	}
+
+	if len(result.Cells) > 0 {
+		log.Printf("Analysis result: %s", result.Cells[0])
+		return result.Cells[0], nil
+	}
+
+	log.Println("No valid response from model")
+	return "", fmt.Errorf("no valid response from model")
 }
+
 
 // ChatWithAI communicates with a chat-based AI model
 func (s *AIService) ChatWithAI(context, query, token, modelAi string) (model.ChatResponse, error) {

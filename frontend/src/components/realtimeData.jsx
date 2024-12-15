@@ -69,19 +69,15 @@ const RealtimeData = () => {
 
   return (
     <div className="bg-gray-900 p-6 rounded-lg shadow-lg text-white">
-      <h2 className="text-2xl font-bold mb-4 text-center text-teal-400">
-        Data Realtime IoT
-      </h2>
-      <div className="text-center mb-4">
-        {isConnected ? (
-          <span className="text-green-400 font-semibold">
-            WebSocket Connected ✅
-          </span>
-        ) : (
-          <span className="text-red-500 font-semibold">
-            WebSocket Disconnected ❌
-          </span>
-        )}
+      <div className="flex items-center justify-center gap-4 mb-4">
+        <h2 className="text-2xl font-bold text-teal-400">Data Realtime IoT</h2>
+        <div className="text-center">
+          {isConnected ? (
+            <span className="text-green-400 font-semibold">Connected ✅</span>
+          ) : (
+            <span className="text-red-500 font-semibold">Disconnected ❌</span>
+          )}
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-6">
         {/* Temperature */}
