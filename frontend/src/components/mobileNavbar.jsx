@@ -32,7 +32,7 @@ const MobileNavbar = ({ onClose }) => {
       {/* Additional Content */}
       <div className="mt-auto px-6 py-4 border-t border-slate-700">
         <p className="text-sm text-slate-400">
-          © 2024 MINSYS. All rights reserved.
+          © 2024 SENSORAI. All rights reserved.
         </p>
       </div>
     </div>

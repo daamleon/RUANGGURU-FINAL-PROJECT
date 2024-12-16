@@ -10,7 +10,7 @@ const Header = () => {
     <header className="bg-slate-800 text-white flex items-center justify-between py-2 md:py-4 px-4 rounded-b-lg">
       <div className="flex items-center">
         {/* Logo */}
-        <div className="bg-blue-500 p-2 rounded-full">
+        <div className="bg-blue-500 p-2 md:ml-4 rounded-full">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             fill="white"
@@ -22,7 +22,9 @@ const Header = () => {
           </svg>
         </div>
         {/* App Name */}
-        <h1 className="text-2xl md:text-3xl font-bold ml-2">MINSYS</h1>
+        <h1 className="text-xl text-blue-700 md:text-3xl font-bold ml-2">
+          SENSORAI
+        </h1>
       </div>
       <DesktopNavbar />
 

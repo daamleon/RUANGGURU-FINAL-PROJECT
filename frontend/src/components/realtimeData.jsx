@@ -49,13 +49,13 @@ const RealtimeData = () => {
           </div>
           {/* Random Humidity */}
           <div className="flex flex-col items-center bg-gray-500 p-4 rounded-lg shadow-md">
-            <FaTint className="text-green-500 text-4xl mb-4" />
+            <FaTint className="text-blue-500 text-4xl mb-4" />
             <BatteryBar
               label="Random Humidity"
               value={data.RandomHumidity}
               maxValue={100}
               format="%"
-              color="bg-green-500"
+              color="bg-blue-500"
             />
           </div>
           {/* Random Temperature */}
