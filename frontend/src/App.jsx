@@ -1,22 +1,31 @@
 import React, { useState } from "react";
 import Header from "./components/header";
+// import MobileNavbar from "./components/mobileNavbar";
 import UploadFile from "./components/uploadFile";
 import ChatInput from "./components/chatInput";
 import ResponseArea from "./components/responseArea";
 import ChooseModel from "./components/chooseModel";
 import Footer from "./components/footer";
 import useFetchSelectedModel from "./hooks/useFetchSelectedModel";
-import RealtimeData from "./components/realtimeData"; // Mengganti RealtimeComponent menjadi RealtimeData
+import RealtimeData from "./components/realtimeData";
 import axios from "axios";
 
 function App() {
+  const [showFileInput, setShowFileInput] = useState(false);
   const [file, setFile] = useState(null);
   const [fileQuery, setFileQuery] = useState("");
   const [generalQuery, setGeneralQuery] = useState("");
-  const [responseWords, setResponseWords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState("google/gemma-2-2b-it");
+  const [responseWords, setResponseWords] = useState([]);
   const [showModelSelection, setShowModelSelection] = useState(false);
+  const toggleFileInput = () => {
+    if (showFileInput) {
+      setFile(null); // Reset file saat input file disembunyikan
+    }
+    setShowFileInput((prev) => !prev);
+  };
+
   const [setData] = useState({
     Humidity: 0,
     RandomHumidity: 0,
@@ -24,15 +33,17 @@ function App() {
     RandomTemperature: 0,
   });
 
-  // Fungsi untuk menerima data dari RealtimeData
+  // Fetch default model from backend or preset
+  useFetchSelectedModel(setSelectedModel);
+
+  // Mengatur data dari RealtimeData
   const handleRealtimeData = (newData) => {
     setData(newData);
   };
 
-  useFetchSelectedModel(setSelectedModel);
-
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+  const handleFileChange = (event) => {
+    const uploadedFile = event.target.files[0];
+    setFile(uploadedFile);
   };
 
   const displayResponseWords = (response) => {
@@ -45,29 +56,45 @@ function App() {
     });
   };
 
-  const handleUpload = async () => {
-    if (!file || !fileQuery) {
-      alert("Please select a file and enter a query for the file!");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("query", fileQuery);
-
+  // Mengirim file dan menganalisis query
+  const handleAnalyze = async () => {
     try {
+      if (!file && !fileQuery) {
+        alert("Please upload a file or enter a query for Firebase!");
+        return;
+      }
+
       setLoading(true);
-      const res = await axios.post("http://localhost:8080/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      displayResponseWords(res.data.answer);
+
+      if (file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("query", fileQuery || "");
+
+        const res = await axios.post("http://localhost:8080/upload", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        displayResponseWords(res.data.answer);
+      } else if (fileQuery) {
+        const firebaseData = { path: "/DHT22", query: fileQuery };
+        const res = await axios.post(
+          "http://localhost:8080/analyze-firebase",
+          firebaseData,
+          {
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+        displayResponseWords(res.data.answer);
+      }
     } catch (error) {
-      console.error("Error uploading file:", error);
+      console.error("Error analyzing file:", error);
+      alert("Failed to analyze data. Please check console.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Handle chat queries
   const handleChat = async () => {
     if (!generalQuery) {
       alert("Please enter a query for general chat!");
@@ -82,11 +109,13 @@ function App() {
       displayResponseWords(res.data.answer);
     } catch (error) {
       console.error("Error querying chat:", error);
+      alert("Error processing chat. Check console.");
     } finally {
       setLoading(false);
     }
   };
 
+  // Mengubah model yang dipilih
   const handleModelChange = async (model) => {
     try {
       setLoading(true);
@@ -96,6 +125,8 @@ function App() {
 
       if (res.data && res.data.status === "success") {
         setSelectedModel(model);
+      } else {
+        alert("Error setting model. Please try again.");
       }
     } catch (error) {
       console.error("Error updating model:", error);
@@ -107,33 +138,37 @@ function App() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-900 font-sans">
+      {/* Header Section */}
       <Header
         showModelSelection={showModelSelection}
         setShowModelSelection={setShowModelSelection}
       />
-
+      {/* <MobileNavbar /> */}
+      {/* Model Selection Screen */}
       {showModelSelection ? (
         <ChooseModel
-          setSelectedModel={(model) => handleModelChange(model)}
+          setSelectedModel={(model) => handleModelChange(model)} // Callback untuk mengubah model
           selectedModel={selectedModel}
-          setShowModelSelection={setShowModelSelection}
+          setShowModelSelection={setShowModelSelection} // Menutup layar model
         />
       ) : (
         <>
+          {/* Main Content */}
           <div className="flex-grow overflow-y-auto">
-            <div>
-              <RealtimeData
-                onDataReceived={handleRealtimeData} // Mengirim data ke handleRealtimeData
-              />
-            </div>
+            {/* Real-time Data */}
+            <RealtimeData
+              onDataReceived={handleRealtimeData} // Data diterima dari komponen real-time
+            />
 
             {/* File Upload Section */}
             <UploadFile
               handleFileChange={handleFileChange}
-              handleUpload={handleUpload}
+              handleAnalyze={handleAnalyze}
               fileQuery={fileQuery}
               setFileQuery={setFileQuery}
               loading={loading}
+              showFileInput={showFileInput}
+              toggleFileInput={toggleFileInput}
             />
 
             {/* Response Section */}
@@ -146,7 +181,11 @@ function App() {
             generalQuery={generalQuery}
             setGeneralQuery={setGeneralQuery}
             loading={loading}
+            setShowModelSelection={setShowModelSelection} // Membuka layar model
+            selectedModel={selectedModel} // Model yang dipilih dikirim ke ChatInput
           />
+
+          {/* Footer */}
           <Footer />
         </>
       )}
