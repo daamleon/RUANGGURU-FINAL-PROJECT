@@ -36,6 +36,7 @@ func main() {
 
 	// Register routes
 	router.HandleFunc("/realtime-data", routes.FirebaseRealtimeHandler(firebaseService))
+	router.HandleFunc("/analyze-firebase", routes.AnalyzeFirebaseHandler(firebaseService, aiService, token)).Methods("POST")
 	router.HandleFunc("/upload", routes.UploadHandler(fileService, aiService, token)).Methods("POST")
 	router.HandleFunc("/chat", routes.ChatHandler(aiService, token, &selectedModel)).Methods("POST")
 	router.HandleFunc("/set-model", routes.SetModelHandler(&selectedModel)).Methods("POST")

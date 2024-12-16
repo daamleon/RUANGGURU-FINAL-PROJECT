@@ -10,8 +10,8 @@ const ChooseModel = ({
     { id: "microsoft/Phi-3.5-mini-instruct", name: "Microsoft Phi 3.5" },
     { id: "Qwen/QwQ-32B-Preview", name: "Qwen Preview" },
     { id: "Qwen/Qwen2.5-Coder-32B-Instruct", name: "Qwen Instruct" },
-    { id: "microsoft/DialoGPT-medium", name: "Microsoft DialoGPT" },
-    { id: "facebook/blenderbot-400M-distill", name: "Facebook BlenderBot" },
+    // { id: "microsoft/DialoGPT-medium", name: "Microsoft DialoGPT" },
+    // { id: "facebook/blenderbot-400M-distill", name: "Facebook BlenderBot" },
   ];
 
   const handleModelSelect = (modelId) => {
